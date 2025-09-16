@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projek Peluang</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal-backdrop">
+        <div id="onboarding-modal">
+            <div class="modal-content">
+                <div class="header-section">
+                    <h1 class="logo">Projek Peluang</h1>
+                    <h2>Welcome! Let's build your personalized feed.</h2>
+                    <p>Answer two quick questions to discover opportunities tailored just for you. No signup required.</p>
+                </div>
+                <div class="input-fields-section">
+                    <label for="study-field">What are you studying?</label>
+                    <input type="text" id="study-field" placeholder="e.g., Computer Science, Business, Design">
+                    <label for="career-goal">What's your dream career?</label>
+                    <input type="text" id="career-goal" placeholder="e.g., AI Engineer, Product Manager, UX Designer">
+                </div>
+                <button id="create-feed-btn">Create My Feed</button>
+            </div>
+            <div class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <p>Personalizing your opportunities...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Page -->
+    <div class="main-app">
+        <header class="main-header">
+            <div class="logo-container">
+                <h1 class="logo">Projek Peluang</h1>
+            </div>
+            <div id="user-profile" class="user-profile-display" style="display: none;">
+                <span>Studying: <strong id="display-study"></strong></span> | 
+                <span>Career Goal: <strong id="display-career"></strong></span>
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/edit--v1.png" alt="Edit" class="edit-icon" id="edit-choices"/>
+            </div>
+        </header>
+
+        <main class="feed-section">
+            <h2 class="feed-title">Your Personalized Opportunities</h2>
+            <div id="opportunities-grid" class="opportunities-grid">
+                <!-- Opportunity cards will be injected here by JavaScript -->
+            </div>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <img src="https://img.icons8.com/pastel-glyph/128/000000/looking-through-a-telescope.png" alt="Telescope illustration">
+                <h3>Nothing to show just yet!</h3>
+                <p>We're searching for opportunities that match your profile. Check back soon or try editing your interests.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
