@@ -13,7 +13,7 @@ This document outlines the architecture for the 1-week MVP of the Personalized A
 ## Technology Stack
 
 - **Frontend:** Next.js on Vercel
-- **Backend:** Serverless Functions (Vercel or Supabase)
+- **Backend:** Python Web Server (e.g., Flask or FastAPI) hosted on AWS EC2.
 - **Database:** Vector Database (e.g., ChromaDB, Supabase with pgvector). A vector-native database is chosen to handle both metadata filtering (for the MVP) and semantic search (for future features) in a single, elegant system.
 - **AI:** OpenAI API
 
@@ -129,7 +129,10 @@ This section defines the API endpoints for the serverless functions.
 
 ### `GET /api/opportunities`
 
--   **Description:** Fetches a list of all opportunities from the database.
+-   **Description:** Fetches a list of opportunities from the database, filtered by a list of tags. This is the core endpoint for building the personalized feed.
+-   **Query Parameters:**
+    -   `tags` (string, required): A comma-separated list of tags to filter by.
+    -   **Example:** `/api/opportunities?tags=AI/ML,Python,Internship`
 -   **Request Body:** None
 -   **Response Body (Success):**
     ```json
@@ -200,16 +203,15 @@ Myra will be responsible for the entire user-facing application.
 
 BQ will be responsible for the data pipeline and all backend services.
 
--   **Deliverable 1: Backend & Database Setup:**
-    -   Set up the serverless function environment (e.g., on Vercel).
-    -   Set up and configure the vector database (e.g., ChromaDB or Supabase with pgvector).
+-   **Deliverable 1: EC2 Server & Database Setup:**
+    -   Set up a Python web server framework (e.g., Flask or FastAPI) on the existing EC2 instance.
+    -   Configure a process manager (e.g., Gunicorn) to run the web application.
+    -   Set up and configure the vector database (e.g., a self-hosted ChromaDB instance on the same EC2 server, or a managed service).
 -   **Deliverable 2: Data Ingestion Pipeline:**
-    -   Write the Python scripts for web scraping and parsing RSS feeds from the specified data sources.
-    -   Implement the logic to connect to the OpenAI API to generate vector embeddings and metadata tags for each new opportunity.
-    -   Write the script to insert the opportunities (embedding, content, and metadata) into the vector database.
-    -   Configure the entire pipeline to run as a daily automated cron job.
--   **Deliverable 3: API Endpoints (Serverless Functions):**
-    -   Create the `POST /api/generate-profile-tags` function. This will receive the user's profile, call the OpenAI API's "Profile Analyzer" prompt, and return the resulting JSON array of tags.
-    -   Create the `GET /api/opportunities` function. This will query the vector database using a metadata filter based on the tags provided in the request, and return the list of matching opportunities.
-
--   **Note on Serverless for BQ:** The "serverless function environment" on Vercel is significantly simpler than traditional server setup. BQ will not need to manage servers, operating systems, or web server software. He can focus entirely on writing the Python logic for the API endpoints, and Vercel will handle the rest automatically. The workflow is as simple as placing a Python file in the `/api` directory of the project.
+    -   Write the Python scripts for web scraping and parsing RSS feeds.
+    -   Implement the logic to connect to the OpenAI API to generate embeddings and metadata.
+    -   Write the script to insert the data into the vector database.
+    -   Configure a `cron` job on the EC2 instance to run this pipeline daily.
+-   **Deliverable 3: API Endpoints:**
+    -   Implement the `POST /api/generate-profile-tags` endpoint within the Flask/FastAPI application.
+    -   Implement the `GET /api/opportunities` endpoint, including the logic to filter the vector database based on the `tags` query parameter.
