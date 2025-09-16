@@ -15,7 +15,7 @@ This document outlines the architecture for the 1-week MVP of the Personalized A
 - **Frontend:** Next.js on Vercel
 - **Backend:** Python Web Server (e.g., Flask or FastAPI) hosted on AWS EC2.
 - **Database:** Vector Database (e.g., ChromaDB, Supabase with pgvector). A vector-native database is chosen to handle both metadata filtering (for the MVP) and semantic search (for future features) in a single, elegant system.
-- **AI:** OpenAI API
+- **AI:** Google Gemini API (via Python SDK)
 
 ## High-Level Architecture
 
@@ -23,7 +23,7 @@ The system is composed of three main parts:
 
 1.  **Data Ingestion Pipeline:** An automated, daily process that fetches data from an open data source, enriches it with AI-generated tags, and stores it in the database.
 2.  **Frontend Application:** A Next.js application that provides the user interface. It handles the initial user profiling and displays the personalized feed.
-3.  **AI Services:** A set of services that use the OpenAI API to tag content and create user profiles.
+3.  **AI Services:** A set of services that use the Gemini API to tag content and create user profiles.
 
 ## Data Ingestion Strategy
 
@@ -85,7 +85,7 @@ The frontend is responsible for the user-facing experience.
     - The answers are stored in the browser's `localStorage`.
 2.  **AI Profile Analyzer:**
     - When the user submits their answers, the frontend makes a call to a serverless function.
-    - This function calls the OpenAI API with a prompt to generate a JSON array of relevant tags based on the user's profile.
+    - This function calls the Gemini API with a prompt to generate a JSON array of relevant tags based on the user's profile.
     - The generated tags are then stored in the user's `localStorage`.
 3.  **Personalized Feed:**
     - The main page fetches all recent opportunities from the Supabase database.
@@ -155,18 +155,36 @@ This section defines the API endpoints for the serverless functions.
     }
     ```
 
-### Outbound API Calls
+### `POST /api/trigger-ingestion` (For Development & Testing)
 
-#### OpenAI API - Content Tagger
+-   **Description:** Manually triggers the data ingestion pipeline. This provides an on-demand way to refresh the data during development, rather than waiting for the daily cron job.
+-   **Security:** This endpoint should be protected by a secret key passed in a request header (e.g., `Authorization: Bearer YOUR_SECRET_KEY`).
+-   **Request Body:** None
+-   **Response Body (Success):**
+    ```json
+    {
+      "status": "Ingestion process started."
+    }
+    ```
+-   **Response Body (Error):**
+    ```json
+    {
+      "error": "Failed to start ingestion process."
+    }
+    ```
 
--   **Endpoint:** `https://api.openai.com/v1/chat/completions`
--   **Method:** `POST`
+### Outbound API Calls (Google Gemini)
+
+BQ will use the `google-generativeai` Python SDK.
+
+#### Gemini - Content Tagger
+
+-   **Model:** `gemini-2.5-flash` (or similar)
 -   **Prompt:** "Read the following text and generate a JSON array of relevant tags: [Opportunity Content]"
 
-#### OpenAI API - Profile Analyzer
+#### Gemini - Profile Analyzer
 
--   **Endpoint:** `https://api.openai.com/v1/chat/completions`
--   **Method:** `POST`
+-   **Model:** `gemini-2.5-flash` (or similar)
 -   **Prompt:** "Based on a student interested in becoming a '[dreamCareer]' who is studying '[studyField]', what are the most relevant topics and opportunity types for them? Respond with a JSON array of tags."
 
 ## Future Plans (Post-Hackathon)
@@ -209,9 +227,10 @@ BQ will be responsible for the data pipeline and all backend services.
     -   Set up and configure the vector database (e.g., a self-hosted ChromaDB instance on the same EC2 server, or a managed service).
 -   **Deliverable 2: Data Ingestion Pipeline:**
     -   Write the Python scripts for web scraping and parsing RSS feeds.
-    -   Implement the logic to connect to the OpenAI API to generate embeddings and metadata.
+    -   Implement the logic to connect to the Google Gemini API to generate embeddings and metadata.
     -   Write the script to insert the data into the vector database.
-    -   Configure a `cron` job on the EC2 instance to run this pipeline daily.
+    -   **Cron Job Setup:** Configure a `cron` job on the EC2 instance to run the ingestion script daily. This involves editing the crontab (`crontab -e`) and adding a line like `0 2 * * * /usr/bin/python3 /path/to/run_ingestion.py` to schedule the job.
 -   **Deliverable 3: API Endpoints:**
-    -   Implement the `POST /api/generate-profile-tags` endpoint within the Flask/FastAPI application.
+    -   Implement the `POST /api/generate-profile-tags` endpoint within the Flask/FastAPI application. This endpoint will call the Gemini API.
     -   Implement the `GET /api/opportunities` endpoint, including the logic to filter the vector database based on the `tags` query parameter.
+    -   Implement the `POST /api/trigger-ingestion` endpoint for manual data pipeline execution.
