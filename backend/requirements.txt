@@ -1,0 +1,10 @@
+Flask
+google-generativeai
+chromadb
+requests
+feedparser
+python-dotenv
+gunicorn
+html2text
+playwright
+beautifulsoup4
